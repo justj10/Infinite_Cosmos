@@ -162,42 +162,58 @@ while True:
 		TextSurf, TextRect = text_objects(text, largeText, color)
 		TextRect.center = ((xc),(yc))
 		screen.blit(TextSurf, TextRect)
-	def make_button(xc,yc,length,how_tall,text,fontsize,color = (0,0,0),border = (0,0,0),events = pygame.event.get(),font = None):
+	def make_button(xc,yc,length,how_tall,text,fontsize,var,color = (0,0,0),border = (0,0,0),events = pygame.event.get(),font = None):
 		pygame.draw.rect(screen,(211,211,211),(xc,yc,length,how_tall),0)
 		buttonrect = Rect((xc, yc), (length, how_tall))
 		for event in events:
 			mousepos = pygame.mouse.get_pos()
 			if buttonrect.collidepoint(mousepos):
-				# print 'yaeh'
-				pygame.draw.rect(screen,(169,169,169),(xc,yc,length,how_tall),0)
-				if font != None:
-					message_display(text,fontsize,xc + length / 2, yc + how_tall / 2, color,font = font)
-				else:
-					message_display(text,fontsize,xc + length / 2, yc + how_tall / 2, color)
 				if event.type == pygame.MOUSEBUTTONDOWN:
-					return True
+					return 'pressed'
+				return 'hover'
 		pygame.draw.rect(screen,border,(xc,yc,length,how_tall),2)
-		message_display(text,fontsize,xc + length / 2, yc + how_tall / 2, color)
-		return None
+		if font != None:
+			message_display(text,fontsize,xc + length / 2, yc + how_tall / 2, color,font = font)
+		else:
+			message_display(text,fontsize,xc + length / 2, yc + how_tall / 2, color)
+		if len(events) > 0:
+			return None
+		else:
+			return var
+	def make_button_hover(xc,yc,length,how_tall,text,fontsize,color = (0,0,0),border = (0,0,0),font = None):
+		pygame.draw.rect(screen,(169,169,169),(xc,yc,length,how_tall),0)
+		pygame.draw.rect(screen,border,(xc,yc,length,how_tall),2)
+		if font != None:
+			message_display(text,fontsize,xc + length / 2, yc + how_tall / 2, color,font = font)
+		else:
+			message_display(text,fontsize,xc + length / 2, yc + how_tall / 2, color)
 	pygame.mixer.music.play(-1,0.)
 	title = True
 	info = False
+	freeplayButton,missionsButton,instructionsButton,backButton = None,None,None,None
 	while (not start) and mainMenu:
 		screen.fill((30,50,50))
 		mousepos = pygame.mouse.get_pos()
-		print width,height
-		print mousepos
 		events = pygame.event.get()
 		buttonhover = None
 		if title:
 			titlesurf = pygame.transform.scale2x(pygame.image.load('Title.png').convert_alpha())
 			screen.blit(titlesurf,(width / 2 - 400, 40))
-			if make_button(width / 2 - 125,height / 2 - 85,250,50,'Instructions',30,events = events):
+			instructionsButton = make_button(width / 2 - 125,height / 2 - 85,250,50,'Instructions',30,instructionsButton,events = events)
+			if instructionsButton == 'hover':
+				make_button_hover(width / 2 - 125,height / 2 - 85,250,50,'Instructions',30)
+			elif instructionsButton == 'pressed':
 				title = False
 				info = True
-			if make_button(width / 2 - 125,height / 2 - 25,250,50,'Missions',30,events = events):
+			missionsButton = make_button(width / 2 - 125,height / 2 - 25,250,50,'Missions',30,missionsButton,events = events)
+			if missionsButton == 'hover':
+				make_button_hover(width / 2 - 125,height / 2 - 25,250,50,'Missions',30)
+			elif missionsButton == 'pressed':
 				start = True
-			if make_button(width / 2 - 125,height / 2 + 35,250,50,'Freeplay',30,events = events):
+			freeplayButton = make_button(width / 2 - 125,height / 2 + 35,250,50,'Freeplay',30,freeplayButton,events = events)
+			if freeplayButton == 'hover':
+				make_button_hover(width / 2 - 125,height / 2 + 35,250,50,'Freeplay',30)
+			elif freeplayButton == 'pressed':
 				start = True
 			shipimagesurface = pygame.transform.rotate(pygame.transform.scale(pygame.image.load('spaceship.png').convert_alpha(),(200,200)),315)
 			screen.blit(shipimagesurface,(100,300))
@@ -212,34 +228,70 @@ while True:
 			if event.type == pygame.QUIT:
 				os._exit(0)
 		if info:
-			pygame.draw.rect(screen,(211,211,211),(width/2 - 75,height - 150,150,75),0)
-			for event in events:
-				if width / 2 - 75 < mousepos[0] < width / 2 + 75:
-					if height - 150 < mousepos[1] < height - 75:
-						pygame.draw.rect(screen,(169,169,169),(width/2 - 75,height - 150,150,75),0)
-						if  event.type == pygame.MOUSEBUTTONDOWN:
-							title = True
-							info = False
-			pygame.draw.rect(screen,(0,0,0),(width/2 - 75,height - 150,150,75),2)
-			message_display('Back',30,width / 2,height - 112,(0,0,0))
+			backButton = make_button(width/2 - 75,height - 150,150,75,'Back',30,backButton,events = events)
+			if backButton == 'hover':
+				make_button_hover(width/2 - 75,height - 150,150,75,'Back',30)
+			if backButton == 'pressed':
+				title = True
+				info = False
 			message_display('Controls:',30,width/2,100)
 			message_display('Arrow keys to move',30,width/2,130)
 			message_display('Shift to slow down',30,width/2,160)
 			message_display('Spacebar to activate item',30,width/2,190)
+			message_display('Speed power-ups give your ship a temporary speed boost',30,width/2,280)
+			spusurf = pygame.image.load('speedpowerup.png')
+			screen.blit(spusurf,(200,272))
+			message_display('Shield power-ups give your ship a shield',30,width/2,310)
+			shpusurf = pygame.image.load('shieldpowerup.png')
+			screen.blit(shpusurf,(320,302))
+			message_display("Health power-ups allow you to recover HP if you've lost any",30,width/2,340)
+			hpusurf = pygame.image.load('medpack.png')
+			screen.blit(hpusurf,(160,332))
+			message_display("If your ship hits an asteroid, you lose 10 HP or your shield if you have one",30,width/2,370)
+			message_display("If your ship reaches 0 HP, you lose",30,width/2,400)
+			message_display('Your goal in freeplay mode is to survive as long as possible',30,width/2,430)
+			message_display("Your goal in missions mode is to complete the objective",30,width/2,460)
 		pygame.display.update()
 		clock.tick(60)
 		## TODO 1: Difficulty Screen
+		easyButton,normalButton,hardButton,insaneButton,infernalButton = None,None,None,None,None
 	while mainMenu: 
 		screen.fill((100,100,255))
 		mousepos = pygame.mouse.get_pos()
 		message_display('Choose your difficulty:',50,width/2,height/2 - 200)
-		pygame.draw.rect(screen,(211,211,211),(width/2 - 125,height/2 - 125,250,50),0)
-		pygame.draw.rect(screen,(211,211,211),(width/2 - 125,height/2 - 50,250,50),0)
-		pygame.draw.rect(screen,(211,211,211),(width/2 - 125,height/2 + 25,250,50),0)
-		pygame.draw.rect(screen,(211,211,211),(width/2 - 125,height/2 + 100,250,50),0)
+		events = pygame.event.get()
+		easyButton = make_button(width/2 - 125,height/2 - 125,250,50,'Easy',30,easyButton,events = events,color = (255,255,255))
+		if easyButton == 'hover':
+			make_button_hover(width/2 - 125,height/2 - 125,250,50,'Easy',30,color = (255,255,255))
+		elif easyButton == 'pressed':
+			diff = 2
+			mainMenu = False
+		normalButton = make_button(width/2 - 125,height/2 - 50,250,50,'Normal',30,normalButton,events = events,color = (255,255,255))
+		if normalButton == 'hover':
+			make_button_hover(width/2 - 125,height/2 - 50,250,50,'Normal',30,color = (255,255,255))
+		elif normalButton == 'pressed':
+			diff = 3
+			mainMenu = False
+		hardButton = make_button(width/2 - 125,height/2 + 25,250,50,'Hard',30,hardButton,events = events,color = (255,255,255))
+		if hardButton == 'hover':
+			make_button_hover(width/2 - 125,height/2 + 25,250,50,'Hard',30,color = (255,255,255))
+		elif hardButton == 'pressed':
+			diff = 5
+			mainMenu = False
+		insaneButton = make_button(width/2 - 125,height/2 + 100,250,50,'Insane',30,insaneButton,events = events,color = (255,255,255))
+		if insaneButton == 'hover':
+			make_button_hover(width/2 - 125,height/2 + 100,250,50,'Insane',30,color = (255,255,255))
+		elif insaneButton == 'pressed':
+			diff = 8
+			mainMenu = False
 		if inf == 3:
-			pygame.draw.rect(screen,(211,211,211),(width/2 - 125,height/2 + 175,250,50),0)
-		for event in pygame.event.get():
+			infernalButton = make_button(width/2 - 125,height/2 + 175,250,50,'INFERNAL',40,infernalButton,events = events,color = (255,0,0),font = 'vinerhanditc',border = (255,100,100))
+			if infernalButton == 'hover':
+				make_button_hover(width/2 - 125,height/2 + 175,250,50,'INFERNAL',40,color = (255,0,0),font = 'vinerhanditc',border= (255,100,100))
+			elif infernalButton == 'pressed':
+				diff = 12
+				mainMenu = False
+		for event in events:
 			if event.type == pygame.KEYDOWN:
 				if event.key == K_ESCAPE:
 					os._exit(0)
@@ -247,47 +299,10 @@ while True:
 					inf += 1
 			if event.type == pygame.QUIT:
 				os._exit(0)
-		if width / 2 - 125 < mousepos[0] < width / 2 + 125:
-			if height / 2 - 125 < mousepos[1] < height / 2 - 75:
-				pygame.draw.rect(screen,(169,169,169),(width/2 - 125,height/2 - 125,250,50),0)
-				if event.type == MOUSEBUTTONDOWN:
-					diff = 2
-					mainMenu = False
-			if height / 2 - 50 < mousepos[1] < height / 2:
-				pygame.draw.rect(screen,(169,169,169),(width/2 - 125,height/2 - 50,250,50),0)
-				if event.type == MOUSEBUTTONDOWN:
-					diff = 3
-					mainMenu = False
-			if height / 2 + 25 < mousepos[1] < height / 2 + 75:
-				pygame.draw.rect(screen,(169,169,169),(width/2 - 125,height/2 + 25,250,50),0)
-				if event.type == MOUSEBUTTONDOWN:
-					diff = 5
-					mainMenu = False
-			if height / 2 + 100 < mousepos[1] < height / 2 + 150:
-				pygame.draw.rect(screen,(169,169,169),(width/2 - 125,height/2 + 100,250,50),0)
-				if event.type == MOUSEBUTTONDOWN:
-					diff = 8
-					mainMenu = False
-			if (height / 2 + 175 < mousepos[1] < height / 2 + 225) and inf == 3:
-				pygame.draw.rect(screen,(169,169,169),(width/2 - 125,height/2 + 175,250,50),0)
-				if event.type == MOUSEBUTTONDOWN:
-					diff = 12
-					mainMenu = False
-		pygame.draw.rect(screen,(0,0,0),(width/2 - 125,height/2 - 125,250,50),2)
-		pygame.draw.rect(screen,(0,0,0),(width/2 - 125,height/2 - 50,250,50),2)
-		pygame.draw.rect(screen,(0,0,0),(width/2 - 125,height/2 + 25,250,50),2)
-		pygame.draw.rect(screen,(0,0,0),(width/2 - 125,height/2 + 100,250,50),2)
-		if inf == 3:
-			pygame.draw.rect(screen,(0,0,0),(width/2 - 125,height/2 + 175,250,50),2)
-		message_display('Easy',30,width/2,height/2 - 100,(255,255,255))
-		message_display('Normal',30,width/2,height/2 - 25,(255,255,255))
-		message_display('Hard',30,width/2,height/2 + 50,(255,255,255))
-		message_display('Insane',30,width/2,height/2 + 125,(255,255,255))
-		if inf == 3:
-			message_display('INFERNAL',40,width/2,height/2 + 200,(255,0,0))
 		pygame.display.update()
 		clock.tick(60)
 		stabilizer = 0 
+	print diff
 	pygame.mixer.music.play(-1,0.)
 	playershowing = True
 	while start:
@@ -652,6 +667,7 @@ while True:
 		clock.tick(60)
 	
 	#levels#enemies w/ ai (HARD)
+	#bouncy enemy
 	#level screen with buttons
 	#more items
 	#gun of some sort (mouse? twin stick?)
