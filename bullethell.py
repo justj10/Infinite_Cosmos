@@ -4,6 +4,7 @@ from pygame.locals import *
 os.environ['SDL_VIDEO_WINDOW_POS'] = '%d,%d'%(3,25)
 user32 = ctypes.windll.user32
 width,height = user32.GetSystemMetrics(0) - 6,user32.GetSystemMetrics(1) - 70
+freeplay,missions = True, False
 while True:
 	import time
 	starttime = time.time()
@@ -145,7 +146,7 @@ while True:
 	highscores = False
 	player = Player()
 	bulletticks = 0
-	pygame.mixer.music.load('Infernal Showdown.wav')
+	pygame.mixer.music.load('Sounds\Ballista.wav')
 	powerupticks = 0
 	shieldactive = False
 	speedactive = [False,[10,10]]
@@ -210,11 +211,13 @@ while True:
 				make_button_hover(width / 2 - 125,height / 2 - 25,250,50,'Missions',30)
 			elif missionsButton == 'pressed':
 				start = True
+				missions = True
 			freeplayButton = make_button(width / 2 - 125,height / 2 + 35,250,50,'Freeplay',30,freeplayButton,events = events)
 			if freeplayButton == 'hover':
 				make_button_hover(width / 2 - 125,height / 2 + 35,250,50,'Freeplay',30)
 			elif freeplayButton == 'pressed':
 				start = True
+				freeplayButton = True
 			shipimagesurface = pygame.transform.rotate(pygame.transform.scale(pygame.image.load('spaceship.png').convert_alpha(),(200,200)),315)
 			screen.blit(shipimagesurface,(100,300))
 			enemyimagesurface = pygame.transform.rotate(pygame.transform.scale(pygame.image.load('enemy1.png').convert_alpha(),(200,200)),45)
@@ -253,7 +256,7 @@ while True:
 			message_display("Your goal in missions mode is to complete the objective",30,width/2,460)
 		pygame.display.update()
 		clock.tick(60)
-		## TODO 1: Difficulty Screen
+		## TODO 1:ALL THE BUTTONS
 		easyButton,normalButton,hardButton,insaneButton,infernalButton = None,None,None,None,None
 	while mainMenu: 
 		screen.fill((100,100,255))
@@ -303,6 +306,7 @@ while True:
 		clock.tick(60)
 		stabilizer = 0 
 	print diff
+	pygame.mixer.music.load('Sounds\Infernal Showdown.wav')
 	pygame.mixer.music.play(-1,0.)
 	playershowing = True
 	while start:
@@ -399,7 +403,7 @@ while True:
 				player.spacebar = None
 				for bullet in bulletgroup:
 					bullet.kill()
-				clearsound = pygame.mixer.Sound('clearsound.wav')
+				clearsound = pygame.mixer.Sound('Sounds\clearsound.wav')
 				pygame.mixer.Sound.play(clearsound)
 			elif player.spacebar == 'pause.png':
 				player.spacebar = None
@@ -418,13 +422,13 @@ while True:
 				bullet.kill()
 				if shieldactive:
 					shieldactive = False
-					shieldsdownsound = pygame.mixer.Sound('shieldsdown.wav')
+					shieldsdownsound = pygame.mixer.Sound('Sounds\shieldsdown.wav')
 					pygame.mixer.Sound.play(shieldsdownsound)
 				else:
 					if not flashing[0]: 
 						player.hp -= 10 #player is immune when flashing, otherwise they take 10 points of damage
 						flashing = [True,0]
-						damagesound = pygame.mixer.Sound('damagesound.wav')
+						damagesound = pygame.mixer.Sound('Sounds\damagesound.wav')
 						if player.hp != 0:
 							pygame.mixer.Sound.play(damagesound)
 		if len(medpackgroup) != 0:
@@ -438,7 +442,7 @@ while True:
 				if player.hp > 100:
 					player.hp = 100
 				medpack.kill()
-				powerupsound = pygame.mixer.Sound('powerupget.wav')
+				powerupsound = pygame.mixer.Sound('Sounds\powerupget.wav')
 				pygame.mixer.Sound.play(powerupsound)
 		if len(shieldpowerupgroup) != 0:
 			for shieldpowerup in shieldpowerupgroup:
@@ -449,7 +453,7 @@ while True:
 			for shieldpowerup in deadshieldpowerups:
 				shieldactive = True
 				shieldpowerup.kill()
-				powerupsound = pygame.mixer.Sound('powerupget.wav')
+				powerupsound = pygame.mixer.Sound('Sounds\powerupget.wav')
 				pygame.mixer.Sound.play(powerupsound)
 		if len(speedpowerupgroup) != 0:
 			for speedpowerup in speedpowerupgroup:
@@ -461,7 +465,7 @@ while True:
 				speedactive[0] = True
 				player.speedtime = 0
 				speedpowerup.kill()
-				powerupsound = pygame.mixer.Sound('powerupget.wav')
+				powerupsound = pygame.mixer.Sound('Sounds\powerupget.wav')
 				pygame.mixer.Sound.play(powerupsound)
 		if len(spacebarspritegroup) != 0:
 			for spacebaritem in spacebarspritegroup:
@@ -472,7 +476,7 @@ while True:
 			for spacebaritem in deadspacebaritems:
 				player.spacebar = spacebaritem.type
 				spacebaritem.kill()
-				powerupsound = pygame.mixer.Sound('powerupget.wav')
+				powerupsound = pygame.mixer.Sound('Sounds\powerupget.wav')
 				pygame.mixer.Sound.play(powerupsound)
 		if player.hp <= 0:
 			start = False
@@ -512,8 +516,9 @@ while True:
 				spawningpaused = [False,None]
 		if heat < 255: heat += .001 * diff
 		clock.tick(60)
-	pygame.mixer.music.load('Deathsound.midi')
+	pygame.mixer.music.load('Sounds\Deathsound.midi')
 	pygame.mixer.music.play(0,0.)
+	pygame.mixer.music.set_endevent(pygame.USEREVENT)
 	while dead:
 		if diff == 2:
 			difficulty = 'easy'
@@ -533,6 +538,9 @@ while True:
 				if event.key == K_ESCAPE:
 					dead = False
 					os._exit(0)
+			if event.type == pygame.USEREVENT:
+				pygame.mixer.music.load('Sounds\\ballista.wav')
+				pygame.mixer.music.play(0,-1)
 			screen.fill((255,50,50))
 			message_display('You died. You survived for {} seconds on {} difficulty. Better luck next time.'.format(str("{0:.2f}".format(finaltime - starttime)), difficulty),width / 50,width/2,height/2)
 			pygame.draw.rect(screen,(211,211,211),(20,height - 70,200,50),0)
@@ -591,6 +599,9 @@ while True:
 						screentext += str(event.unicode).upper()
 					else:
 						madeerrorininputl = True
+			if event.type == pygame.USEREVENT:
+				pygame.mixer.music.load('Sounds\\ballista.wav')
+				pygame.mixer.music.play(0,-1)
 			message_display('Enter Your Name',30,width // 2 -100,height //2 - 100,(0,0,0))
 			pygame.draw.rect(screen,(255,255,255),(width // 2  - 400,height //2 - 25,600,50),0)
 			pygame.draw.rect(screen,(169,169,169),(width // 2  - 400,height //2 - 25,600,50),2)
@@ -645,6 +656,9 @@ while True:
 				if event.key == K_ESCAPE:
 					dead = False
 					os._exit(0)
+			if event.type == pygame.USEREVENT:
+				pygame.mixer.music.load('Sounds\\ballista.wav')
+				pygame.mixer.music.play(0,-1)
 			screen.fill((50,50,255))
 			pygame.draw.rect(screen,(211,211,211),(20,height - 70,200,50),0)
 			pygame.draw.rect(screen,(211,211,211),(width - 220,height - 70,200,50),0)
@@ -666,7 +680,8 @@ while True:
 		pygame.display.update()
 		clock.tick(60)
 	
-	#levels#enemies w/ ai (HARD)
+	#levels
+	#enemies w/ ai (HARD)
 	#bouncy enemy
 	#level screen with buttons
 	#more items
